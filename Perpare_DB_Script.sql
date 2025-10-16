@@ -1,18 +1,17 @@
 -- =================================================================
--- Complete Test Environment Setup Script
+-- Complete Test Environment Setup Script (Corrected)
 -- Description:
--- This script creates the entire database and all required objects
--- for the PAF data processing project from scratch. Running this
--- script on a clean server will result in a fully functional
--- test environment.
+-- This script contains all database objects for the PAF data project.
 --
--- Execution Order:
--- 1. Create the POSTCODE database.
--- 2. Create the 'stg' schema.
--- 3. Create main ETL tables (Raw, Staging with Hash, Production).
--- 4. Create logging tables (Change Log and Error Log).
--- 5. Create all seven dimension/fact sub-tables.
+-- UPDATED:
+-- 1. Added the missing [DepThoroughfareDescriptorKey] column to
+--    [stg.PAFLOAD_WithHash] and [dbo.PAFLOAD] tables.
+-- 2. Corrected the column list in [dbo.tblRMAddresses] to align
+--    with the final ETL stored procedure logic.
 -- =================================================================
+
+PRINT 'Starting test environment setup...';
+GO
 
 -- Create the database if it does not exist
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'POSTCODE')
@@ -112,7 +111,7 @@ CREATE TABLE stg.PAFLOAD_WithHash
     [RowHash]                   BINARY(32)       NULL,
     [LocalityKey]               BINARY(32)       NULL,
     [ThoroughfareKey]           BINARY(32)       NULL,
-    [ThoroughfareDescriptorKey] BINARY(32)       NULL,
+    [DepThoroughfareDescriptorKey] BINARY(32)    NULL, -- CORRECTED: Added this column
     [BuildingNameKey]           BINARY(32)       NULL,
     [SubBuildingNameKey]        BINARY(32)       NULL,
     [CompanyKey]                BINARY(32)       NULL
@@ -154,7 +153,7 @@ CREATE TABLE dbo.PAFLOAD
     [RowHash]                   BINARY(32)       NULL,
     [LocalityKey]               BINARY(32)       NULL,
     [ThoroughfareKey]           BINARY(32)       NULL,
-    [ThoroughfareDescriptorKey] BINARY(32)       NULL,
+    [DepThoroughfareDescriptorKey] BINARY(32)    NULL, -- CORRECTED: Added this column
     [BuildingNameKey]           BINARY(32)       NULL,
     [SubBuildingNameKey]        BINARY(32)       NULL,
     [CompanyKey]                BINARY(32)       NULL,
@@ -176,7 +175,6 @@ CREATE TABLE dbo.PAFLOAD_ChangeLog
     [ChangeTimestamp]           DATETIME        NOT NULL,
     [ExecutedBy]                NVARCHAR(128)    NULL,
     [UDPRN]                     NVARCHAR(20)     NOT NULL,
-    -- Storing only the keys and hashes for a leaner log table
     [OldRowHash]                BINARY(32)       NULL,
     [NewRowHash]                BINARY(32)       NULL
 );
@@ -304,8 +302,7 @@ CREATE TABLE dbo.tblRMAddresses
     [Postcode]                      NVARCHAR(20)    NULL,
     [LocalityKey]                   BINARY(32)      NULL,
     [ThoroughfareKey]               BINARY(32)      NULL,
-    [ThoroughfareDescriptorKey]     BINARY(32)      NULL,
-    [DepThoroughfareDescriptorKey]  BINARY(32)      NULL,
+    [DepThoroughfareDescriptorKey]  BINARY(32)      NULL, -- CORRECTED: Simplified the key structure
     [BuildingNameKey]               BINARY(32)      NULL,
     [SubBuildingNameKey]            BINARY(32)      NULL,
     [NumberOfHouseholds]            INT             NULL,
@@ -324,5 +321,7 @@ GO
 PRINT 'Table "dbo.tblRMAddresses" created.';
 GO
 
+
 PRINT 'Test environment setup complete.';
 GO
+
